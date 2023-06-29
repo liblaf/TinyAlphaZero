@@ -6,12 +6,7 @@ from alpha_zero.game import Board, Game
 from alpha_zero.neural_network import NeuralNetwork
 from alpha_zero.utils.policy import mask as mask_array
 
-from .const import (
-    EXPLORATION_RATE_BASE,
-    EXPLORATION_RATE_INIT,
-    NUM_SEARCH_EVAL,
-    NUM_SEARCH_TRAIN,
-)
+from . import const
 
 
 def mask_policy(
@@ -73,12 +68,12 @@ class Node:
             mean_action_value: float = child.total_action_value / child.visit_count
         else:
             mean_action_value: float = 0
-        if np.isnan(EXPLORATION_RATE_BASE):
-            exploration_rate: float = EXPLORATION_RATE_INIT
+        if np.isnan(const.EXPLORATION_RATE_BASE):
+            exploration_rate: float = const.EXPLORATION_RATE_INIT
         else:
             exploration_rate: float = (
-                1 + self.visit_count + EXPLORATION_RATE_BASE
-            ) / EXPLORATION_RATE_BASE + EXPLORATION_RATE_INIT
+                1 + self.visit_count + const.EXPLORATION_RATE_BASE
+            ) / const.EXPLORATION_RATE_BASE + const.EXPLORATION_RATE_INIT
         assert self.prior_probability
         return mean_action_value + exploration_rate * child.prior_probability * np.sqrt(
             self.visit_count
@@ -94,8 +89,8 @@ class Node:
 
 
 class MCTS:
-    num_search_eval: int = NUM_SEARCH_EVAL
-    num_search_train: int = NUM_SEARCH_TRAIN
+    num_search_eval: int = const.NUM_SEARCH_EVAL
+    num_search_train: int = const.NUM_SEARCH_TRAIN
     training: bool = True
 
     total_action_value: dict[tuple[Board, int], float] = {}
