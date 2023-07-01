@@ -3,7 +3,8 @@ from functools import lru_cache
 
 import numpy as np
 
-from ..abc import Game as AbstractGame
+from alpha_zero.game.abc import Game as AbstractGame
+
 from . import const
 from .board import Board
 

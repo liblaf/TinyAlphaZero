@@ -9,10 +9,10 @@ from .utils.policy import mask as mask_policy
 
 @dataclasses.dataclass(kw_only=True)
 class MCTSConfig:
-    EXPLORATION_RATE_BASE: float = np.nan
-    EXPLORATION_RATE_INIT: float = np.sqrt(2)
-    NUM_SIMULATIONS_EVAL: int = 256
-    NUM_SIMULATIONS_TRAIN: int = 256
+    exploration_rate_base: float = np.nan
+    exploration_rate_init: float = np.sqrt(2)
+    num_simulations_eval: int = 0
+    num_simulations_train: int = 256
 
 
 class MCTS:
@@ -44,9 +44,9 @@ class MCTS:
     def search(self, board: Board, player: int) -> np.ndarray:
         canonical_state: Board = self.game.canonicalize(board=board, player=player)
         num_simulations: int = (
-            self.config.NUM_SIMULATIONS_TRAIN
+            self.config.num_simulations_train
             if self.training
-            else self.config.NUM_SIMULATIONS_EVAL
+            else self.config.num_simulations_eval
         )
         for _ in range(num_simulations):
             self.simulate(canonical_state=canonical_state)
@@ -72,12 +72,10 @@ class MCTS:
         if terminated:
             return value
         if canonical_state not in self.prior_probability:
-            # policy, value = self.net.predict(canonical_state.encode())
+            policy, value = self.net.predict(canonical_state.encode())
             valid_actions: np.ndarray = self.game.get_valid_actions(
                 board=canonical_state, player=CANONICAL_PLAYER
             )
-            policy: np.ndarray = valid_actions
-            value: float = 0
             policy: np.ndarray = mask_policy(policy=policy, valid_actions=valid_actions)
             self.prior_probability[canonical_state] = policy
             return value
@@ -87,7 +85,7 @@ class MCTS:
         )
         next_player: int = -CANONICAL_PLAYER
         next_canonical_state: Board = self.game.canonicalize(
-            board=next_board, player=-next_player
+            board=next_board, player=next_player
         )
         next_value: float = self.simulate(canonical_state=next_canonical_state)
         value: float = -next_value
@@ -118,16 +116,16 @@ class MCTS:
         )
         prior_probability: float = self.prior_probability[canonical_state][action]
         state_visit_count: int = self.state_visit_count.get(canonical_state, 0)
-        if np.isnan(self.config.EXPLORATION_RATE_BASE):
-            exploration_rate: float = self.config.EXPLORATION_RATE_INIT
+        if np.isnan(self.config.exploration_rate_base):
+            exploration_rate: float = self.config.exploration_rate_init
         else:
             exploration_rate: float = (
                 np.log(
-                    (1 + state_visit_count + self.config.EXPLORATION_RATE_BASE)
-                    / self.config.EXPLORATION_RATE_BASE
+                    (1 + state_visit_count + self.config.exploration_rate_base)
+                    / self.config.exploration_rate_base
                 )
                 / (1 + state_visit_count)
-                + self.config.EXPLORATION_RATE_INIT
+                + self.config.exploration_rate_init
             )
         return mean_action_value + exploration_rate * prior_probability * np.sqrt(
             state_visit_count

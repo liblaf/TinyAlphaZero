@@ -4,7 +4,8 @@ from typing import Self
 
 import numpy as np
 
-from ..abc import Board as AbstractBoard
+from alpha_zero.game.abc import Board as AbstractBoard
+
 from . import const
 
 ADJACENT: list[tuple[int, int]] = [(-1, 0), (+1, 0), (0, -1), (0, +1)]

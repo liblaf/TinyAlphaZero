@@ -1,4 +1,5 @@
 import itertools
+from collections.abc import Iterable
 from typing import Optional
 
 import torch.multiprocessing as mp
@@ -66,7 +67,7 @@ def multi_match(
 ) -> tuple[int, int, int]:
     num_match = num_match // 2 * 2
     with mp.Pool(processes=processes) as pool:
-        results: list[float] = pool.starmap(
+        results: Iterable[float] = pool.starmap(
             single_match,
             itertools.repeat((game, player_1, player_2, False), times=num_match // 2),
         )
@@ -78,7 +79,7 @@ def multi_match(
                 loss += 1
             else:
                 draw += 1
-        results: list[float] = pool.starmap(
+        results: Iterable[float] = pool.starmap(
             single_match,
             itertools.repeat((game, player_2, player_1, False), times=num_match // 2),
         )
