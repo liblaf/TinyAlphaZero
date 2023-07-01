@@ -8,7 +8,7 @@ all:
 clean:
 	@ find $(CURDIR) -type d -name '__pycache__'   -exec $(RM) --recursive --verbose '{}' +
 	@ find $(CURDIR) -type d -name '.pytest_cache' -exec $(RM) --recursive --verbose '{}' +
-	@ find $(CURDIR) -type f -name '.coverage'     -exec $(RM) --verbose '{}' +
+	@ find $(CURDIR) -type f -name '.coverage*'    -exec $(RM) --verbose '{}' +
 	@ find $(CURDIR) -type f -name 'coverage.xml'  -exec $(RM) --verbose '{}' +
 
 pretty: black prettier
@@ -28,5 +28,5 @@ black:
 	isort --profile black $(CURDIR)
 	black $(CURDIR)
 
-prettier:
-	prettier --write --ignore-path $(CURDIR)/.gitignore $(CURDIR)
+prettier: $(CURDIR)/.gitignore
+	prettier --write --ignore-path=$< $(CURDIR)

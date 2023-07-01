@@ -6,7 +6,7 @@ import torch
 import torch.nn.functional as F
 from torch import Tensor, nn, optim
 
-from .abc import NeuralNetwork as BaseNet
+from .abc import NeuralNetwork as AbstractNeuralNetwork
 
 
 class ResidualBlock(nn.Module):
@@ -109,31 +109,40 @@ class ResidualNetwork(nn.Module):
         return policy, value
 
 
-class NeuralNetworkWrapper(BaseNet):
+class NeuralNetworkWrapper(AbstractNeuralNetwork):
     net: ResidualNetwork
+    cuda: bool = torch.cuda.is_available()
 
     def __init__(self, action_size: int, board_size: int, *args, **kwargs) -> None:
         self.net = ResidualNetwork(
             action_size=action_size, board_size=board_size, *args, **kwargs
         )
+        self.net = self.net.share_memory()
 
-    def checkpoint_load(self, filepath: Path) -> None:
+        if self.cuda:
+            self.net = self.net.cuda()
+
+    def load(self, filepath: Path) -> None:
         self.net = torch.load(filepath)
 
-    def checkpoint_save(self, filepath: Path) -> None:
-        torch.save(self.net, filepath)
-
-    def predict(self, board: np.ndarray) -> tuple[np.ndarray, float]:
+    def predict(self, canonical_state: np.ndarray) -> tuple[np.ndarray, float]:
         self.net.eval()
-        board_tensor: Tensor = torch.from_numpy(board).float().unsqueeze(dim=0)
-        assert board_tensor.shape == (1, 3, self.net.board_size, self.net.board_size)
+        state_tensor: Tensor = (
+            torch.from_numpy(canonical_state).float().unsqueeze(dim=0)
+        )
+        if self.cuda:
+            state_tensor = state_tensor.cuda()
+        assert state_tensor.shape == (1, 3, self.net.board_size, self.net.board_size)
         policy: Tensor
         value: Tensor
         with torch.no_grad():
-            policy, value = self.net(board_tensor)
+            policy, value = self.net(state_tensor)
         assert policy.shape == (1, self.net.action_size)
         assert value.shape == (1, 1)
-        return torch.softmax(policy, dim=-1).squeeze(dim=0).numpy(), value.item()
+        return torch.softmax(policy, dim=-1).squeeze(dim=0).cpu().numpy(), value.item()
+
+    def save(self, filepath: Path) -> None:
+        torch.save(self.net, filepath)
 
     def train(
         self,
@@ -162,7 +171,10 @@ class NeuralNetworkWrapper(BaseNet):
                 boards: Tensor = torch.from_numpy(np.array(sample_boards))
                 target_policies: Tensor = torch.from_numpy(np.array(sample_policies))
                 target_values: Tensor = torch.from_numpy(np.array(sample_values))
-
+                if self.cuda:
+                    boards = boards.cuda()
+                    target_policies = target_policies.cuda()
+                    target_values = target_values.cuda()
                 optimizer.zero_grad()
                 policies: Tensor
                 values: Tensor

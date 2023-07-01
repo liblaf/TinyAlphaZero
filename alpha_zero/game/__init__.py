@@ -1,4 +1,3 @@
-# from .abc import Board, Game
+# from .abc import CANONICAL_PLAYER, Board, Game
 
-from .go.board import Board
-from .go.game import Game
+from .go import CANONICAL_PLAYER, Board, Game

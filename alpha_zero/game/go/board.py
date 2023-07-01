@@ -4,7 +4,8 @@ from typing import Self
 
 import numpy as np
 
-from ..abc import Board as BaseBoard
+from ..abc import Board as AbstractBoard
+from . import const
 
 ADJACENT: list[tuple[int, int]] = [(-1, 0), (+1, 0), (0, -1), (0, +1)]
 
@@ -22,7 +23,7 @@ STONE_DISPLAY: dict[Stone, str] = {
 }
 
 
-class Board(BaseBoard):
+class Board(AbstractBoard):
     data: np.ndarray
     last_captured: tuple[int, int] = (-1, -1)
     last_move_is_pass: tuple[bool, bool] = (False, False)
@@ -46,7 +47,7 @@ class Board(BaseBoard):
     def __eq__(self, other: Self) -> bool:
         if not np.array_equal(self.data, other.data):
             return False
-        if self.move_count != other.move_count:
+        if False and self.move_count != other.move_count:
             return False
         if self.last_captured != other.last_captured:
             return False
@@ -62,8 +63,9 @@ class Board(BaseBoard):
     def action_size(self) -> int:
         return self.size * self.size + 1
 
-    def change_perspective(self, player: int) -> None:
-        self.data *= player
+    def canonicalize(self, player: int) -> None:
+        if player != const.CANONICAL_PLAYER:
+            self.data *= -1
 
     def check_terminated(self, player: int) -> bool:
         if self.last_move_is_pass == (True, True):

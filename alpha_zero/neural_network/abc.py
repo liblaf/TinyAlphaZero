@@ -6,15 +6,15 @@ import numpy as np
 
 class NeuralNetwork(ABC):
     @abstractmethod
-    def checkpoint_load(self, filepath: Path) -> None:
+    def load(self, filepath: Path) -> None:
         ...
 
     @abstractmethod
-    def checkpoint_save(self, filepath: Path) -> None:
+    def predict(self, canonical_state: np.ndarray) -> tuple[np.ndarray, float]:
         ...
 
     @abstractmethod
-    def predict(self, board: np.ndarray) -> tuple[np.ndarray, float]:
+    def save(self, filepath: Path) -> None:
         ...
 
     @abstractmethod

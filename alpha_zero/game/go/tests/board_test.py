@@ -1,6 +1,13 @@
+import pickle
+
 import numpy as np
 
-from ..board import Board
+from alpha_zero.game.go.board import Board
+
+
+def test_go_bard_pickle(size: int = 5) -> None:
+    board: Board = Board(size=size)
+    pickle.dumps(board)
 
 
 def test_go_board_copy(size: int = 5) -> None:

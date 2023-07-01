@@ -3,11 +3,12 @@ from functools import lru_cache
 
 import numpy as np
 
-from ..abc import Game as BaseGame
+from ..abc import Game as AbstractGame
+from . import const
 from .board import Board
 
 
-class Game(BaseGame):
+class Game(AbstractGame):
     board_size: int
 
     def __init__(self, board_size: int) -> None:
@@ -17,9 +18,9 @@ class Game(BaseGame):
     def action_size(self) -> int:
         return self.board_size * self.board_size + 1
 
-    def change_perspective(self, board: Board, player: int) -> Board:
+    def canonicalize(self, board: Board, player: int) -> Board:
         new_board: Board = board.copy()
-        new_board.change_perspective(player=player)
+        new_board.canonicalize(player=player)
         return new_board
 
     def check_terminated(self, board: Board, player: int) -> tuple[bool, float]:
@@ -31,7 +32,7 @@ class Game(BaseGame):
         elif black_score < white_score:
             return True, -player
         elif black_score == white_score:
-            return True, 0
+            return True, const.DRAW_VALUE
         else:
             assert False, "Unreachable"  # pragma: no cover
 

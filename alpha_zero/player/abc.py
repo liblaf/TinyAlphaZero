@@ -7,11 +7,7 @@ class Player(ABC):
     game: Game
 
     @abstractmethod
-    def __init__(self, game: Game) -> None:
-        ...
-
-    @abstractmethod
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         ...
 
     @abstractmethod

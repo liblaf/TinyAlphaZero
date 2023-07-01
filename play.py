@@ -5,8 +5,10 @@ import click
 import typer
 
 from alpha_zero.game import Game
-from alpha_zero.match import single_match
-from alpha_zero.player import PLAYER_LIST, Player, PlayerRandom
+from alpha_zero.match import multi_match, single_match
+from alpha_zero.mcts import MCTS
+from alpha_zero.neural_network import NeuralNetwork
+from alpha_zero.player import PLAYER_LIST, Player, PlayerAlphaZero, PlayerRandom
 
 
 def construct_player(
@@ -15,7 +17,13 @@ def construct_player(
     if player == "Random":
         return PlayerRandom(game=game)
     elif player == "AlphaZero":
-        raise NotImplementedError()
+        net: NeuralNetwork = NeuralNetwork(
+            action_size=game.action_size, board_size=game.board_size
+        )
+        if checkpoint:
+            net.load(filepath=checkpoint)
+        mcts: MCTS = MCTS(game=game, net=net)
+        return PlayerAlphaZero(game=game, mcts=mcts)
     raise NotImplementedError()
 
 
@@ -37,9 +45,7 @@ def main(
         ),
     ],
     board_size: Annotated[int, typer.Option("--board-size", envvar="BOARD_SIZE")] = 9,
-    match_count: Annotated[
-        int, typer.Option("--match-count", envvar="MATCH_COUNT")
-    ] = 1,
+    num_match: Annotated[int, typer.Option("--num-match", envvar="NUM_MATCH")] = 1,
     player_1_checkpoint: Annotated[
         Optional[Path],
         typer.Option(
@@ -72,7 +78,15 @@ def main(
     player_2_instance: Player = construct_player(
         game=game, player=player_2, checkpoint=player_2_checkpoint
     )
-    if match_count == 1:
+    if num_match > 1:
+        multi_match(
+            game=game,
+            player_1=player_1_instance,
+            player_2=player_2_instance,
+            num_match=num_match,
+            display=True,
+        )
+    else:
         single_match(
             game=game,
             player_1=player_1_instance,

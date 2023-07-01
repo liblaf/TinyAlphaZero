@@ -4,6 +4,8 @@ from typing import Self
 
 import numpy as np
 
+CANONICAL_PLAYER: int = 1
+
 
 class Board(ABC):
     @property
@@ -12,7 +14,7 @@ class Board(ABC):
         ...
 
     @abstractmethod
-    def change_perspective(self, player: int) -> None:
+    def canonicalize(self, player: int) -> None:
         ...
 
     @abstractmethod
@@ -41,7 +43,7 @@ class Game(ABC):
         ...
 
     @abstractmethod
-    def change_perspective(self, board: Board, player: int) -> Board:
+    def canonicalize(self, board: Board, player: int) -> Board:
         ...
 
     @abstractmethod

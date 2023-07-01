@@ -3,16 +3,16 @@ import numpy as np
 from alpha_zero.game import Board, Game
 from alpha_zero.utils.policy import mask as mask_policy
 
-from .abc import Player as PlayerBase
+from .abc import Player as AbstractPlayer
 
 
-class Player(PlayerBase):
+class Player(AbstractPlayer):
     game: Game
 
     def __init__(self, game: Game) -> None:
         self.game = game
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return "Random"
 
     def play(self, board: Board, player: int) -> int:
