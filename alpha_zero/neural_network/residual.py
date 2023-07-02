@@ -1,4 +1,5 @@
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
+from datetime import datetime
 from pathlib import Path
 
 import numpy as np
@@ -146,18 +147,18 @@ class NeuralNetworkWrapper(AbstractNeuralNetwork):
 
     def train(
         self,
-        samples: list[tuple[np.ndarray, np.ndarray, float]],
+        samples: Sequence[tuple[np.ndarray, np.ndarray, float]],
         *,
         batch_size: int = 1024,
         epochs: int = 8,
         lr: float = 1e-4,
         weight_decay: float = 1e-4,
-    ) -> None:
+    ) -> float:
         self.net.train()
         optimizer: optim.Optimizer = optim.Adam(
             self.net.parameters(), lr=lr, weight_decay=weight_decay
         )
-
+        final_loss: float = np.nan
         for _ in range(epochs):
             batch_count: int = (len(samples) // batch_size) + 1
             for _ in range(batch_count):
@@ -168,9 +169,13 @@ class NeuralNetworkWrapper(AbstractNeuralNetwork):
                 sample_boards, sample_policies, sample_values = zip(
                     *[samples[i] for i in sample_indices]
                 )
-                boards: Tensor = torch.from_numpy(np.array(sample_boards))
-                target_policies: Tensor = torch.from_numpy(np.array(sample_policies))
-                target_values: Tensor = torch.from_numpy(np.array(sample_values))
+                boards: Tensor = torch.from_numpy(np.array(sample_boards)).float()
+                target_policies: Tensor = torch.from_numpy(
+                    np.array(sample_policies)
+                ).float()
+                target_values: Tensor = (
+                    torch.from_numpy(np.array(sample_values)).float().unsqueeze(dim=-1)
+                )
                 if self.cuda:
                     boards = boards.cuda()
                     target_policies = target_policies.cuda()
@@ -182,5 +187,7 @@ class NeuralNetworkWrapper(AbstractNeuralNetwork):
                 loss: Tensor = F.mse_loss(values, target_values) + F.cross_entropy(
                     input=policies, target=target_policies
                 )
+                final_loss = loss.item()
                 loss.backward()
                 optimizer.step()
+        return final_loss

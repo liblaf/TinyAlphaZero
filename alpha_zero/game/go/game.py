@@ -1,5 +1,5 @@
 from collections.abc import Iterable
-from functools import lru_cache
+from functools import cached_property, lru_cache
 
 import numpy as np
 
@@ -15,7 +15,7 @@ class Game(AbstractGame):
     def __init__(self, board_size: int) -> None:
         self.board_size = board_size
 
-    @property
+    @cached_property
     def action_size(self) -> int:
         return self.board_size * self.board_size + 1
 
@@ -25,6 +25,8 @@ class Game(AbstractGame):
         return new_board
 
     def canonicalize_value(self, value: float, player: int) -> float:
+        if abs(value) < 0.5:
+            return abs(value)
         if player == const.CANONICAL_PLAYER:
             return value
         else:
@@ -46,29 +48,30 @@ class Game(AbstractGame):
     def get_equivalent_boards(
         self, board: Board, policy: np.ndarray
     ) -> Iterable[tuple[Board, np.ndarray]]:
-        policy_matrix: np.ndarray = np.resize(
-            policy, new_shape=(self.board_size, self.board_size)
-        )
-        policy_pass: float = policy[-1]
-        next_board: np.ndarray = board.data.copy()
-        next_policy: np.ndarray = policy_matrix.copy()
+        return [(board, policy)]
+        # policy_matrix: np.ndarray = np.resize(
+        #     policy, new_shape=(self.board_size, self.board_size)
+        # )
+        # policy_pass: float = policy[-1]
+        # next_board: np.ndarray = board.data.copy()
+        # next_policy: np.ndarray = policy_matrix.copy()
 
-        def get_board(matrix: np.ndarray) -> Board:
-            new_board: Board = board.copy()
-            new_board.from_numpy(matrix)
-            return new_board
+        # def get_board(matrix: np.ndarray) -> Board:
+        #     new_board: Board = board.copy()
+        #     new_board.from_numpy(matrix)
+        #     return new_board
 
-        def get_policy(matrix: np.ndarray) -> np.ndarray:
-            return np.append(matrix.flatten(), policy_pass)
+        # def get_policy(matrix: np.ndarray) -> np.ndarray:
+        #     return np.append(matrix.flatten(), policy_pass)
 
-        for _ in range(4):
-            yield get_board(next_board), get_policy(next_policy)
-            yield get_board(np.fliplr(next_board)), get_policy(np.fliplr(next_policy))
-            next_board = np.rot90(next_board)
-            next_policy = np.rot90(next_policy)
+        # for _ in range(4):
+        #     yield get_board(next_board), get_policy(next_policy)
+        #     yield get_board(np.fliplr(next_board)), get_policy(np.fliplr(next_policy))
+        #     next_board = np.rot90(next_board)
+        #     next_policy = np.rot90(next_policy)
 
-        np.testing.assert_array_almost_equal(next_board, board.data)
-        np.testing.assert_array_almost_equal(next_policy, policy_matrix)
+        # np.testing.assert_array_almost_equal(next_board, board.data)
+        # np.testing.assert_array_almost_equal(next_policy, policy_matrix)
 
     def get_init_board(self) -> Board:
         return Board(size=self.board_size)

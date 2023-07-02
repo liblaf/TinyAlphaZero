@@ -12,7 +12,7 @@ class MCTSConfig:
     exploration_rate_base: float = np.nan
     exploration_rate_init: float = np.sqrt(2)
     num_simulations_eval: int = 0
-    num_simulations_train: int = 256
+    num_simulations_train: int = 128
 
 
 class MCTS:
