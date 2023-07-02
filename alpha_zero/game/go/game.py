@@ -24,6 +24,12 @@ class Game(AbstractGame):
         new_board.canonicalize(player=player)
         return new_board
 
+    def canonicalize_value(self, value: float, player: int) -> float:
+        if player == const.CANONICAL_PLAYER:
+            return value
+        else:
+            return -value
+
     def check_terminated(self, board: Board, player: int) -> tuple[bool, float]:
         if not board.check_terminated(player=player):
             return False, 0
@@ -66,6 +72,10 @@ class Game(AbstractGame):
 
     def get_init_board(self) -> Board:
         return Board(size=self.board_size)
+
+    def get_next_player(self, player: int) -> int:
+        assert player in [+1, -1]
+        return -player
 
     @lru_cache(maxsize=65536)
     def get_valid_actions(self, board: Board, player: int) -> np.ndarray:

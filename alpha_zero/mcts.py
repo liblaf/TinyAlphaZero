@@ -83,13 +83,14 @@ class MCTS:
         next_board: Board = self.game.play(
             board=canonical_state, action=action, player=CANONICAL_PLAYER
         )
-        next_player: int = -CANONICAL_PLAYER
+        next_player: int = self.game.get_next_player(player=CANONICAL_PLAYER)
         next_canonical_state: Board = self.game.canonicalize(
             board=next_board, player=next_player
         )
         next_value: float = self.simulate(canonical_state=next_canonical_state)
-        value: float = -next_value
-
+        value: float = self.game.canonicalize_value(
+            value=next_value, player=next_player
+        )
         action_visit_count: int = self.action_visit_count.get(
             (canonical_state, action), 0
         )

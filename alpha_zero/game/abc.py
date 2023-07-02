@@ -47,6 +47,10 @@ class Game(ABC):
         ...
 
     @abstractmethod
+    def canonicalize_value(self, value: float, player: int) -> float:
+        ...
+
+    @abstractmethod
     def check_terminated(self, board: Board, player: int) -> tuple[bool, float]:
         ...
 
@@ -58,6 +62,10 @@ class Game(ABC):
 
     @abstractmethod
     def get_init_board(self) -> Board:
+        ...
+
+    @abstractmethod
+    def get_next_player(self, player: int) -> int:
         ...
 
     @abstractmethod
