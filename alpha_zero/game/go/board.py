@@ -105,7 +105,7 @@ class Board(AbstractBoard):
 
     def place_stone(self, x: int, y: int, player: int) -> None:
         assert self._validate_move(x, y, player=player)
-        self._unsafe_place_stone(x, y, player=player)
+        self._place_stone_unsafe(x, y, player=player)
 
     @property
     def scores(self) -> tuple[int, int]:
@@ -206,7 +206,7 @@ class Board(AbstractBoard):
                     return True
         return False
 
-    def _unsafe_place_stone(self, x: int, y: int, player: int) -> None:
+    def _place_stone_unsafe(self, x: int, y: int, player: int) -> None:
         color: Stone = Stone(player)
         if (x, y) == (self.size, 0):
             self.last_move_is_pass = (self.last_move_is_pass[-1], True)
@@ -218,6 +218,8 @@ class Board(AbstractBoard):
                     connected, liberty = self._get_connected_liberty(nx, ny)
                     if not liberty:
                         capture.extend(connected)
+            for nnx, nny in capture:
+                self.data[nnx, nny] = Stone.EMPTY
             if len(capture) == 1:
                 self.last_captured = capture[0]
             else:
@@ -234,7 +236,7 @@ class Board(AbstractBoard):
         if (x, y) == self.last_captured:
             return False
         board: Self = self.copy()
-        board._unsafe_place_stone(x, y, player=player)
+        board._place_stone_unsafe(x, y, player=player)
         if not self._get_liberty(x, y):
             return False
         return True
