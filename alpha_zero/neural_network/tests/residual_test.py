@@ -71,6 +71,6 @@ def test_network_wrapper_train(board_size: int = 5) -> None:
     )
     loss: float = net.train(samples=dataset, lr=1e-3)
     predict_policy, predict_value = net.predict(board.encode())
-    predict_policy = mask_policy(policy=predict_policy, valid_actions=valid_actions)
+    # predict_policy = mask_policy(policy=predict_policy, valid_actions=valid_actions)
     np.testing.assert_allclose(predict_policy, policy, rtol=1e-2, atol=1e-2)
     np.testing.assert_allclose(predict_value, value, rtol=1e-2, atol=1e-2)
