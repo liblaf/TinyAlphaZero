@@ -48,30 +48,30 @@ class Game(AbstractGame):
     def get_equivalent_boards(
         self, board: Board, policy: np.ndarray
     ) -> Iterable[tuple[Board, np.ndarray]]:
-        return [(board, policy)]
-        # policy_matrix: np.ndarray = np.resize(
-        #     policy, new_shape=(self.board_size, self.board_size)
-        # )
-        # policy_pass: float = policy[-1]
-        # next_board: np.ndarray = board.data.copy()
-        # next_policy: np.ndarray = policy_matrix.copy()
+        # return [(board, policy)]
+        policy_matrix: np.ndarray = np.resize(
+            policy, new_shape=(self.board_size, self.board_size)
+        )
+        policy_pass: float = policy[-1]
+        next_board: np.ndarray = board.data.copy()
+        next_policy: np.ndarray = policy_matrix.copy()
 
-        # def get_board(matrix: np.ndarray) -> Board:
-        #     new_board: Board = board.copy()
-        #     new_board.from_numpy(matrix)
-        #     return new_board
+        def get_board(matrix: np.ndarray) -> Board:
+            new_board: Board = board.copy()
+            new_board.from_numpy(matrix)
+            return new_board
 
-        # def get_policy(matrix: np.ndarray) -> np.ndarray:
-        #     return np.append(matrix.flatten(), policy_pass)
+        def get_policy(matrix: np.ndarray) -> np.ndarray:
+            return np.append(matrix.flatten(), policy_pass)
 
-        # for _ in range(4):
-        #     yield get_board(next_board), get_policy(next_policy)
-        #     yield get_board(np.fliplr(next_board)), get_policy(np.fliplr(next_policy))
-        #     next_board = np.rot90(next_board)
-        #     next_policy = np.rot90(next_policy)
+        for _ in range(4):
+            yield get_board(next_board), get_policy(next_policy)
+            yield get_board(np.fliplr(next_board)), get_policy(np.fliplr(next_policy))
+            next_board = np.rot90(next_board)
+            next_policy = np.rot90(next_policy)
 
-        # np.testing.assert_array_almost_equal(next_board, board.data)
-        # np.testing.assert_array_almost_equal(next_policy, policy_matrix)
+        np.testing.assert_allclose(next_board, board.data)
+        np.testing.assert_allclose(next_policy, policy_matrix)
 
     def get_init_board(self) -> Board:
         return Board(size=self.board_size)
