@@ -118,20 +118,19 @@ class Board(AbstractBoard):
                     continue
                 color: Stone = Stone.EMPTY
                 connected: list[tuple[int, int]] = list(self._get_connected(x, y))
-                for nx, ny in connected:
-                    for nnx, nny in self._get_adjacent(nx, ny):
-                        if self.data[nnx, nny] == Stone.EMPTY:
+                for nx, ny in self._get_bounds(x, y):
+                    if self.data[nx, ny] == Stone.EMPTY:
+                        pass
+                    else:
+                        if color == Stone.EMPTY:
+                            color = self.data[nx, ny]
+                        elif color == self.data[nx, ny]:
                             pass
+                        elif color != self.data[nx, ny]:
+                            color = Stone.EMPTY
+                            break
                         else:
-                            if color == Stone.EMPTY:
-                                color = self.data[nnx, nny]
-                            elif color == self.data[nnx, nny]:
-                                pass
-                            elif color != self.data[nnx, nny]:
-                                color = Stone.EMPTY
-                                break
-                            else:
-                                assert False, "Unreachable"  # pragma: no cover
+                            assert False, "Unreachable"  # pragma: no cover
                 if color == Stone.EMPTY:
                     pass
                 elif color == Stone.BLACK:
@@ -161,10 +160,12 @@ class Board(AbstractBoard):
 
     def _get_bounds(self, x: int, y: int) -> Iterable[tuple[int, int]]:
         color: Stone = Stone(self.data[x, y])
+        visited: set[tuple[int, int]] = set()
         for nx, ny in self._get_connected(x, y):
             for nnx, nny in self._get_adjacent(nx, ny):
-                if self.data[nnx, nny] != color:
+                if self.data[nnx, nny] != color and (nnx, nny) not in visited:
                     yield nnx, nny
+                    visited.add((nnx, nny))
 
     def _get_connected(self, x: int, y: int) -> Iterable[tuple[int, int]]:
         color: Stone = Stone(self.data[x, y])
