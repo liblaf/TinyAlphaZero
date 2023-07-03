@@ -2,9 +2,9 @@ import dataclasses
 
 import numpy as np
 
-from .game import CANONICAL_PLAYER, Board, Game
-from .neural_network import NeuralNetwork
-from .utils.policy import mask as mask_policy
+from alpha_zero.game import CANONICAL_PLAYER, Board, Game
+from alpha_zero.neural_network.abc import NeuralNetwork
+from alpha_zero.utils.policy import mask as mask_policy
 
 
 @dataclasses.dataclass(kw_only=True)

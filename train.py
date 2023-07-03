@@ -17,7 +17,7 @@ def main(
     ] = 128,
     processes: Annotated[
         Optional[int], typer.Option("--processes", envvar="PROCESSES")
-    ] = None,
+    ] = 8,
 ) -> None:
     game: Game = Game(board_size=board_size)
     mcts_config: MCTSConfig = MCTSConfig(
