@@ -1,4 +1,4 @@
-name: Code Coverage
+name: Test
 
 on:
   push:
@@ -9,7 +9,7 @@ env:
 
 jobs:
   coverage:
-    name: Code Coverage
+    name: Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
