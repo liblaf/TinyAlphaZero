@@ -9,7 +9,7 @@ from .abc import Player as AbstractPlayer
 class Player(AbstractPlayer):
     game: Game
     mcts: MCTS
-    random: bool = True
+    random: bool = False
 
     def __init__(self, game: Game, mcts: MCTS, random: bool = True) -> None:
         self.game = game

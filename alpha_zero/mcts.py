@@ -11,8 +11,8 @@ from .utils.policy import mask as mask_policy
 class MCTSConfig:
     exploration_rate_base: float = np.nan
     exploration_rate_init: float = np.sqrt(2)
-    num_simulations_eval: int = 0
-    num_simulations_train: int = 128
+    num_simulation_eval: int = 0
+    num_simulation_train: int = 128
 
 
 class MCTS:
@@ -44,9 +44,9 @@ class MCTS:
     def search(self, board: Board, player: int) -> np.ndarray:
         canonical_state: Board = self.game.canonicalize(board=board, player=player)
         num_simulations: int = (
-            self.config.num_simulations_train
+            self.config.num_simulation_train
             if self.training
-            else self.config.num_simulations_eval
+            else self.config.num_simulation_eval
         )
         for _ in range(num_simulations):
             self.simulate(canonical_state=canonical_state)

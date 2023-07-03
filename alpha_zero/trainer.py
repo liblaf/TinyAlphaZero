@@ -12,7 +12,7 @@ import torch.multiprocessing as mp
 
 from alpha_zero.game import CANONICAL_PLAYER, Board, Game
 from alpha_zero.match import multi_match
-from alpha_zero.mcts import MCTS
+from alpha_zero.mcts import MCTS, MCTSConfig
 from alpha_zero.neural_network import NeuralNetwork
 from alpha_zero.player import PlayerAlphaZero, PlayerRandom
 from alpha_zero.plot import plot_loss, plot_update_frequency, plot_win_rate
@@ -20,7 +20,7 @@ from alpha_zero.plot import plot_loss, plot_update_frequency, plot_win_rate
 DRAW_VALUE: float = 0.1
 
 
-def self_play_single(
+def self_play_single_yield(
     game: Game, mcts: MCTS
 ) -> Iterable[tuple[Board, np.ndarray, float]]:
     board: Board = game.get_init_board()
@@ -38,17 +38,23 @@ def self_play_single(
             break
         player = game.get_next_player(player=player)
     assert not np.isnan(value)
-    dataset: list[tuple[Board, np.ndarray, float]] = []
     for board, policy, player in history:
+        canonical_value: float = game.canonicalize_value(value=value, player=player)
         for b, p in game.get_equivalent_boards(
             board=game.canonicalize(board=board, player=player), policy=policy
         ):
-            dataset.append((b, p, game.canonicalize_value(value=value, player=player)))
-    return dataset
+            yield b, p, canonical_value
+
+
+def self_play_single(
+    game: Game, mcts: MCTS
+) -> Iterable[tuple[Board, np.ndarray, float]]:
+    return list(self_play_single_yield(game=game, mcts=mcts))
 
 
 class Trainer:
     game: Game
+    mcts_config: MCTSConfig
     net: NeuralNetwork
 
     begin_time: datetime
@@ -57,8 +63,9 @@ class Trainer:
     time: list[datetime]
     updated: list[bool]
 
-    def __init__(self, game: Game) -> None:
+    def __init__(self, game: Game, mcts_config: MCTSConfig = MCTSConfig()) -> None:
         self.game = game
+        self.mcts_config = mcts_config
         self.net = NeuralNetwork(
             action_size=self.game.action_size, board_size=self.game.board_size
         )
@@ -83,7 +90,7 @@ class Trainer:
         self,
         num_iter: int = 128,
         *,
-        maxlen: int = 65536,
+        maxlen: int = 1048576,
         output: Path = Path.cwd() / "output",
         processes: Optional[int] = None,
         update_threshold: float = 0.55,
@@ -93,11 +100,13 @@ class Trainer:
         for i in range(num_iter):
             logging.info(f"Training Iter {i:>3} ...")
             for match in self.self_play_multi(
-                mcts=MCTS(game=self.game, net=self.net), processes=processes
+                mcts=MCTS(game=self.game, net=self.net, config=self.mcts_config),
+                processes=processes,
             ):
-                for board, policy, value in match:
-                    dataset.append((board.encode(), policy, value))
-            logging.info(f"Length of Dataset: {len(dataset)}")
+                dataset.extend(
+                    (board.encode(), policy, value) for board, policy, value in match
+                )
+            logging.info(f"Length of Dataset: {len(dataset):>6}")
             last_net: NeuralNetwork = copy.deepcopy(self.net)
             self._train(dataset=dataset)
             self.time.append(datetime.now())
@@ -122,10 +131,14 @@ class Trainer:
         win, loss, draw = multi_match(
             game=self.game,
             player_1=PlayerAlphaZero(
-                game=self.game, mcts=MCTS(self.game, net=self.net), random=True
+                game=self.game,
+                mcts=MCTS(self.game, net=self.net, config=self.mcts_config),
+                random=True,
             ),
             player_2=PlayerAlphaZero(
-                game=self.game, mcts=MCTS(self.game, net=last_net), random=True
+                game=self.game,
+                mcts=MCTS(self.game, net=last_net, config=self.mcts_config),
+                random=True,
             ),
             processes=processes,
         )
@@ -145,7 +158,9 @@ class Trainer:
         win, loss, draw = multi_match(
             game=self.game,
             player_1=PlayerAlphaZero(
-                game=self.game, mcts=MCTS(game=self.game, net=self.net), random=True
+                game=self.game,
+                mcts=MCTS(game=self.game, net=self.net, config=self.mcts_config),
+                random=True,
             ),
             player_2=PlayerRandom(game=self.game),
             processes=processes,
