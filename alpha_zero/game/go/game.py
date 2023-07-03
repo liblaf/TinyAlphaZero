@@ -82,10 +82,11 @@ class Game(AbstractGame):
 
     @lru_cache(maxsize=65536)
     def get_valid_actions(self, board: Board, player: int) -> np.ndarray:
-        ret: np.ndarray = np.zeros(shape=(self.action_size,), dtype=bool)
+        valid_actions: np.ndarray = np.zeros(shape=(self.action_size,), dtype=bool)
         for x, y in board.get_valid_moves(player=player):
-            ret[x * self.board_size + y] = True
-        return ret
+            valid_actions[x * self.board_size + y] = True
+        valid_actions[-1] = True
+        return valid_actions
 
     def play(self, board: Board, action: int, player: int) -> Board:
         new_board: Board = board.copy()

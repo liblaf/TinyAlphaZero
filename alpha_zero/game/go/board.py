@@ -101,7 +101,6 @@ class Board(AbstractBoard):
         for x, y in np.ndindex(self.data.shape):
             if self._validate_move(x, y, player=player):
                 yield x, y
-        yield self.size, 0
 
     def place_stone(self, x: int, y: int, player: int) -> None:
         assert self._validate_move(x, y, player=player)
@@ -238,7 +237,7 @@ class Board(AbstractBoard):
             return False
         board: Self = self.copy()
         board._place_stone_unsafe(x, y, player=player)
-        if not self._get_liberty(x, y):
+        if not board._get_liberty(x, y):
             return False
         return True
 
