@@ -151,8 +151,8 @@ class NeuralNetworkWrapper(AbstractNeuralNetwork):
         *,
         batch_size: int = 1024,
         epochs: int = 8,
-        lr: float = 1e-4,
-        weight_decay: float = 1e-4,
+        lr: float = 1e-3,
+        weight_decay: float = 1e-6,
     ) -> float:
         self.net.train()
         optimizer: optim.Optimizer = optim.Adam(
