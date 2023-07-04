@@ -26,7 +26,9 @@ def plot_loss(
     updated_numpy: np.ndarray = np.array(updated)
     plt.figure(dpi=600)
     plt.plot(x_numpy, y_numpy)
-    plt.scatter(x=x_numpy[updated_numpy], y=y_numpy[updated_numpy], label="Update")
+    plt.scatter(
+        x=x_numpy[updated_numpy], y=y_numpy[updated_numpy], marker="X", label="Update"
+    )
     plt.title("Loss")
     plt.xlabel("Time (hour)")
     plt.ylabel("Loss")
@@ -80,8 +82,8 @@ def plot_win_rate(
         win_rate.append(win / (win + draw + lose))
         undefeated_rate.append((win + draw) / (win + draw + lose))
     plt.figure(dpi=600)
-    plt.plot(x, undefeated_rate, label="Undefeated", marker="x")
-    plt.plot(x, win_rate, label="Win", marker="x")
+    plt.plot(x, np.array(undefeated_rate) * 100, label="Undefeated", marker="X")
+    plt.plot(x, np.array(win_rate) * 100, label="Win", marker="X")
     plt.legend(loc="best")
     plt.title("Win Rate Against Random")
     plt.xlabel("Time (hour)")

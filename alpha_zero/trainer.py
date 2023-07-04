@@ -76,7 +76,7 @@ class Trainer:
         self.updated = []
 
     def self_play_multi(
-        self, mcts: MCTS, num_match: int = 128, *, processes: Optional[int] = None
+        self, mcts: MCTS, num_match: int = 4, *, processes: Optional[int] = None
     ) -> Iterable[Iterable[tuple[Board, np.ndarray, float]]]:
         with mp.Pool(processes=processes) as pool:
             return list(
@@ -118,7 +118,10 @@ class Trainer:
             if update:
                 self._play_with_random(processes=processes)
             else:
-                self.match_results.append((0, 0, 0))
+                if len(self.match_results) > 0:
+                    self.match_results.append(self.match_results[-1])
+                else:
+                    self._play_with_random(processes=processes)
             self._plot(output=output)
 
     def _play_with_last(
