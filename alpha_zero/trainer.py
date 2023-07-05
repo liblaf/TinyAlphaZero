@@ -76,7 +76,7 @@ class Trainer:
         self.updated = []
 
     def self_play_multi(
-        self, mcts: MCTS, num_match: int = 4, *, processes: Optional[int] = None
+        self, mcts: MCTS, num_match: int = 128, *, processes: Optional[int] = None
     ) -> Iterable[Iterable[tuple[Board, np.ndarray, float]]]:
         with mp.Pool(processes=processes) as pool:
             return list(
@@ -90,6 +90,7 @@ class Trainer:
         self,
         num_iter: int = 128,
         *,
+        epochs: int = 8,
         maxlen: int = 1048576,
         output: Path = Path.cwd() / "output",
         processes: Optional[int] = None,
@@ -108,7 +109,7 @@ class Trainer:
                 )
             logging.info(f"Length of Dataset: {len(dataset):>6}")
             last_net: NeuralNetwork = copy.deepcopy(self.net)
-            self._train(dataset=dataset)
+            self._train(dataset=dataset, epochs=epochs)
             self.time.append(datetime.now())
             update: bool = self._play_with_last(
                 last_net=last_net,
@@ -192,6 +193,11 @@ class Trainer:
             output=output / "win-rate.png",
         )
 
-    def _train(self, dataset: Sequence[tuple[np.ndarray, np.ndarray, float]]) -> None:
-        self.loss.append(self.net.train(samples=dataset))
+    def _train(
+        self,
+        dataset: Sequence[tuple[np.ndarray, np.ndarray, float]],
+        *,
+        epochs: int = 8,
+    ) -> None:
+        self.loss.append(self.net.train(samples=dataset, epochs=epochs))
         logging.info(f"Loss: {self.loss[-1]}")
